@@ -1,6 +1,6 @@
 classdef psf < handle
-    %PSF Summary of this class goes here
-    %   Detailed explanation goes here
+    %PSF very important class that hold the PSF of a single emitter and is
+    %able to sample it to get its image on a frame.
     
     properties
         NA

@@ -1,6 +1,7 @@
 classdef frame < handle
-    %FRAME Summary of this class goes here
-    %   Detailed explanation goes here
+    %FRAME this is one of the main classes of the project. It takes
+    %information about the camera, emitter and the scene to generate the
+    %iamge of the frame.
     
     properties
         camera

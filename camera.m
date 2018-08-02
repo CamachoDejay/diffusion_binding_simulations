@@ -1,6 +1,6 @@
 classdef camera < handle
-    %CAMERA Summary of this class goes here
-    %   Detailed explanation goes here
+    %CAMERA simple class that contains camera properties such as size and
+    %coordinates of the pixels
     
     properties
         pixelSize % in nm
@@ -13,7 +13,6 @@ classdef camera < handle
     methods
         function obj = camera(physicalSize, pixelSize)
             %CAMERA Construct an instance of this class
-            %   Detailed explanation goes here
             obj.physicalSize = physicalSize;
             obj.pixelSize = pixelSize;
 %             obj.exposure = exp; % in ms

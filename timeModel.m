@@ -1,6 +1,6 @@
 classdef timeModel < handle
-    %TIMEMODEL Summary of this class goes here
-    %   Detailed explanation goes here
+    %TIMEMODEL simple class to easily fish a time from a particular model
+    %such as exponential or normal
     
     properties
         name

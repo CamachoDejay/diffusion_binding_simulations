@@ -1,6 +1,7 @@
 classdef trajectory < handle
-    %TRAJECTORY Summary of this class goes here
-    %   Detailed explanation goes here
+    %TRAJECTORY takes a movement model, for the moment just linear, and
+    %given the start position calculates the position of the particle over
+    %time.
     
     properties
         model

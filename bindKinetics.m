@@ -1,6 +1,6 @@
 classdef bindKinetics < handle
-    %BINDKINETICS Summary of this class goes here
-    %   Detailed explanation goes here
+    %BINDKINETICS class that is used to calculate when in a time frame a
+    %pocket is bright
     
     properties
         exposure_ms
@@ -16,7 +16,6 @@ classdef bindKinetics < handle
     methods
         function obj = bindKinetics(exp_ms, nFrames, diffModel, pocModel, blModel)
             %BINDKINETICS Construct an instance of this class
-            %   Detailed explanation goes here
             obj.exposure_ms = exp_ms;
             obj.nFrames = nFrames;
             

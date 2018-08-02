@@ -1,6 +1,6 @@
 classdef emitter < handle
-    %EMITTER Summary of this class goes here
-    %   Detailed explanation goes here
+    %EMITTER holds information about a single emitter, in particular a PSF
+    %that is able to sample itself
     
     properties
         emissionWL
