@@ -1,4 +1,9 @@
-% this is the main script for the binding simulations
+% the purpose of this script is to run all simulations used for the binding
+% model
+
+clear 
+close all
+clc
 
 % total time in seconds of the simulated movie
 time_sec = 50;
@@ -18,4 +23,4 @@ for meanPocketTime = [1000, 500, 200, 100, 50, 25, 10]
     
 end
 
-disp(['Done Done Done'])
+disp('Main script finished')

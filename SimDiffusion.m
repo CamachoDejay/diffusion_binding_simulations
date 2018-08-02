@@ -1,34 +1,42 @@
-function SimDiffusion(exp_ms)
+function out = SimDiffusion(exp_ms, molSpeed, nImages)
+% SIMDIFFUSION simulates a stack of images with 3rd dimention = nImages,
+% molecular speed along the focal plane = molSpeed [nm / ms], and exposure
+% time = exp_ms [ms]
 
-    % inputs that should be accessible to easy user change
+    % simple preconditions
+    assert(length(exp_ms)== 1,'give only one exposure time')
+    assert(length(molSpeed) == 1, 'give only one molecular speed')
+    assert(length(nImages) == 1, 'give only one number for the amount of images to simulate')
 
-    % esposure in ms
-    % exp_ms = 16;
-
-    % molecule speed in nm per ms
-    molSpeed = [0, 10, 14.14, 22.36, 31.62, 44.72, 54.77, 63.25, 70.71, 77.46]; % in nm per ms
+    % end of preconditions
+    
+    % some parameters tht we do not change in the simulations
     movement = 'linear';
-
-    % number of iterations in the simulation
-    nSim = 500;
+    disp('Currently only linear motion model available')
 
     % emission wavelength
     emWL = 550;
+    disp(['Using generic emission wavelength of ' num2str(emWL) ' nm'])
 
     % properties of the camera
     pixSize = 100;
-    %%%%%%%%%% END OF USUAL INPUTS  %%%%%%%%%%%%%%%%%%%%%%%%%
-
+    disp(['Camera has a pixel size of ' num2str(pixSize) ' nm per pixel',...
+          ', which is a typical value for super-resolution imaging'])
+    
     % properties of the optics
     NA = 1.2;
-
-    % properties of the camera
+    disp(['Objective has a NA of ' num2str(NA) ', which is important for ',...
+          'psf calculation'])
+    
+    % properties of the camera, number of pixels
     rowDim = 50;
     colDim = 20;
 
     % movement of molecule at the moment linear
     mov_angle = pi/2; % in radians, clockwhise
 
+    % time resolution for the simulations in ms
+    timeRes = 4; % in ms
     %% populating properties that have been experimentaly determined
     switch exp_ms
         case 50
@@ -43,9 +51,6 @@ function SimDiffusion(exp_ms)
             % total brightness values of around 20K-30K, which translates into 3-6
             % e5 counts per second
             brightness = 6e5; % counts per second
-            
-            % time resolution for the simulations in ms
-            timeRes = 5; % in ms
 
         case 30
             % image conditions for 30 ms
@@ -58,9 +63,6 @@ function SimDiffusion(exp_ms)
             % further for an emitter radius of 4 and a single timepoint we get
             % total brightness values of around 15K-20K, which translates into
             brightness = 7e5; % counts per second
-            
-            % time resolution for the simulations in ms
-            timeRes = 5; % in ms
 
         case 16
             % image conditions for 30 ms
@@ -74,21 +76,20 @@ function SimDiffusion(exp_ms)
             % total brightness values of around 10K-20K, which translates into
             brightness = 10e5; % counts per second
 
-            % time resolution for the simulations in ms
-            timeRes = 4; % in ms
         otherwise
             error('I dont know the frame background properties for the given exposure')
     end
 
 
     %% populating all simParams
-    % here the idea is that I can work witout human interection if I want by
-    % directly loading the simParams, which contains all parameters that are
-    % relevant to the simulation:
+    % here the idea is that I can work witout human interection if I want
+    % by directly loading the simParams, which contains all parameters that
+    % are relevant to the simulation. Thus lets create the simParams
+    % structure
 
     % general
     simParams.timeRes_ms = timeRes;
-    simParams.iterations = nSim;
+    simParams.iterations = nImages;
 
     % related to the camera and frame
     simParams.exposure_ms = exp_ms;
@@ -107,29 +108,26 @@ function SimDiffusion(exp_ms)
     simParams.emitter.b_units    = 'counts per second';
 
     simParams.emitter.movement.name = movement;
-%     simParams.emitter.movement.speed = molSpeed;
+    simParams.emitter.movement.speed = molSpeed;
     simParams.emitter.movement.s_units = 'nm per ms';
     simParams.emitter.movement.angle = mov_angle;
     simParams.emitter.emissionWL = emWL;
 
-    for speed = molSpeed
-        
-        simParams.emitter.movement.speed = speed;
-        % output directory
-        outputDir = [cd filesep 'output' filesep 'linearDiffusion',...
-                     filesep num2str(exp_ms, '%.0f') 'ms',...
-                     filesep 'speed_' num2str(speed, '%.0f') '_int_' num2str(brightness, '%.1s')];
-        simParams.outputDir = outputDir;
-
-        %%
-        simulate(simParams);
-    end
     
-    disp('-----------------')
-    disp('All Done')
+    % output directory
+    outputDir = [cd filesep 'output' filesep 'linearDiffusion',...
+                 filesep num2str(exp_ms, '%.0f') 'ms',...
+                 filesep 'speed_' num2str(molSpeed, '%.0f') '_brightness_' num2str(brightness, '%.1s')];
+    simParams.outputDir = outputDir;
+
+    %% run the simulation, function defined below
+    simulate(simParams);
+    out = true;
 end
 
 function simulate(simParams)
+% SIMULATE loads the simulation parameters and calls the simulation of a
+% single frame
     % saving sim params
     outputDir = simParams.outputDir;
     [status,msg] = mkdir(outputDir);
@@ -168,11 +166,10 @@ function simulate(simParams)
     nSim = simParams.iterations;
 
     % init ouput variables
-    detected = false(nSim,1);
     mov = repmat( cam.image, 1, 1, nSim);
 
     parfor i = 1:nSim
-        [fr, detected(i), ~] = simSingleFrame(cam, em, traceModel, bgProps);
+        [fr] = simSingleFrame(cam, em, traceModel, bgProps);
         mov(:,:,i) = fr.image;
         disp(['Done ' num2str(i) ' out of ' num2str(nSim)])
     end
@@ -187,15 +184,14 @@ function simulate(simParams)
     t.close;
 
     %
-    disp('------ Some output for curiosity -----')
-    disp(['Percentage of detected molecules: ' num2str(sum(detected)*100/nSim, '%.2f') ])
-
+    disp('------ frames saved -----')
 end
 
 
-function [fr, detected, pos] = simSingleFrame(cam, em, traceModel, bgProps)
-    %SIMSINGLEFRAME Summary of this function goes here
-    %   Detailed explanation goes here
+function [fr] = simSingleFrame(cam, em, traceModel, bgProps)
+%SIMSINGLEFRAME Simulates a single frame of the camera, using the emitter
+%defined in em, and using the proper trace and background properties
+
     % init empty frame
     fr = frame(cam);
     center = cam.getCenterOfFrame();
@@ -210,16 +206,19 @@ function [fr, detected, pos] = simSingleFrame(cam, em, traceModel, bgProps)
     bgModel.name = 'Gaussian';
     bgModel.std  = frame_std;
     fr.addNoise(bgModel);
-
-    % now we take the image and try to localize
-    im = fr.image;
-    delta = 5;
-    FWHM_nm = 350;
-    FWHM_pix = FWHM_nm/105;
-    chi2 = 50;
-    [ pos ] = Localization.smDetection( double(im), delta, FWHM_pix, chi2 );
-
-    detected = ~isempty(pos);
+    
+    % Localization is done out of image simulation to use same analysis
+    % pipeline as in the article. I leave below an example on how to do it
+    % in the code
+%     % now we take the image and try to localize
+%     im = fr.image;
+%     delta = 5;
+%     FWHM_nm = 350;
+%     FWHM_pix = FWHM_nm/105;
+%     chi2 = 50;
+%     [ pos ] = Localization.smDetection( double(im), delta, FWHM_pix, chi2 );
+% 
+%     detected = ~isempty(pos);
 
 end
 
