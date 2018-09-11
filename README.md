@@ -16,3 +16,7 @@ To calculate the PSF of a single particle we implemented the [PSF Generator from
 
 ### Binding of particles to target site:
 Further we simulated the interaction between a protein diffusing in the cytosol and a protein-binding pocket at the plasma membrane. This process was simulated by considering the following steps: (1) a fluorescent protein diffuses towards a pocket and binds with certain time constant; (2) Once bound, the molecule becomes fluorescent with a limited survival time on the “bright” state - given by the quenching time. (3) The molecule (bright or bleached) leaves the binding site. (4) The pocket becomes available once again. All this considered, we calculate the fraction of each camera frame in which the binding pocket was occupied by a bright fluorescent label, and use this information to generate the frame’s image.
+
+200 ms | 100 ms | 50 ms
+------------ | ------------- | ------------- |
+<img src="/figs/pocket_200_exp_30.gif" width="90" height="90"> | <img src="/figs/pocket_100_exp_30.gif" width="90" height="90">  | <img src="/figs/pocket_50_exp_30.gif" width="90" height="90"> |  
